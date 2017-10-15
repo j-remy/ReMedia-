@@ -1,0 +1,12 @@
+urls...
+{
+	...{},
+	...{},
+	...{},
+	annotations:[
+		{quoteText: "a quote", annotationText: "an annotation"},
+		{quoteText: "a quote", annotationText: "an annotation"},
+		{quoteText: "a quote", annotationText: "an annotation"}
+	]
+	
+}

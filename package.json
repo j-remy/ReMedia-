@@ -1,0 +1,19 @@
+{
+  "name": "recode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "popup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Omar-Riaz/ReCode.git"
+  },
+  "author": "Omar Riaz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Omar-Riaz/ReCode/issues"
+  },
+  "homepage": "https://github.com/Omar-Riaz/ReCode#readme"
+}
