@@ -7,7 +7,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 module.exports = {
   // Entry files for our popup and background pages
   entry: {
-    popup: './src/popup.js'
+    popup: './src/popup.js',
+    annotations_list: './src/annotations_list.js'
   },
   // Extension will be built into ./dist folder, which we can then load as unpacked extension in Chrome
   output: {
@@ -15,42 +16,64 @@ module.exports = {
     filename: '[name].bundle.js'
   },
   // Here we define loaders for different file types
-  module: {
-    rules: [
-      // We use Babel to transpile JSX
-      {
-        test: /\.js$/,
-        include: [
-          path.resolve(__dirname, './src')
-        ],
-        use: 'babel-loader'
-      }
-      // {
-      //   test: /\.css$/,
-      //   loader: ExtractTextPlugin.extract({
-      //     fallback: 'style-loader',
-      //     use: 'css-loader'
-      //   })
-      // },
-      // {
-      //   test: /\.(ico|eot|otf|webp|ttf|woff|woff2)(\?.*)?$/,
-      //   use: 'file-loader?limit=100000'
-      // },
-      // {
-      //   test: /\.(jpe?g|png|gif|svg)$/i,
-      //   use: [
-      //     'file-loader?limit=100000',
-      //     {
-      //       loader: 'img-loader',
-      //       options: {
-      //         enabled: true,
-      //         optipng: true
-      //       }
-      //     }
-      //   ]
-      // }
-    ]
-  },
+    module: {
+        loaders: [
+            {
+                test: /.js$/,
+                exclude: /(node_modules)/,
+                loader: 'babel-loader',
+                query: {
+                    cacheDirectory: true,
+                    presets: ['es2015', 'react']
+                }
+            },
+            {
+                test: /.jsx$/,
+                exclude: /(node_modules)/,
+                loader: 'babel-loader',
+                query: {
+                    cacheDirectory: true,
+                    presets: ['es2015', 'react']
+                }
+            }
+        ]
+    },
+  // module: {
+  //   rules: [
+  //     // We use Babel to transpile JSX
+  //     {
+  //       test: /\.js$/,
+  //       include: [
+  //         path.resolve(__dirname, './src')
+  //       ],
+  //       use: 'babel-loader'
+  //     }
+  //     // {
+  //     //   test: /\.css$/,
+  //     //   loader: ExtractTextPlugin.extract({
+  //     //     fallback: 'style-loader',
+  //     //     use: 'css-loader'
+  //     //   })
+  //     // },
+  //     // {
+  //     //   test: /\.(ico|eot|otf|webp|ttf|woff|woff2)(\?.*)?$/,
+  //     //   use: 'file-loader?limit=100000'
+  //     // },
+  //     // {
+  //     //   test: /\.(jpe?g|png|gif|svg)$/i,
+  //     //   use: [
+  //     //     'file-loader?limit=100000',
+  //     //     {
+  //     //       loader: 'img-loader',
+  //     //       options: {
+  //     //         enabled: true,
+  //     //         optipng: true
+  //     //       }
+  //     //     }
+  //     //   ]
+  //     // }
+  //   ]
+  // },
   plugins: [
     // // create CSS file with all used styles
     // new ExtractTextPlugin('bundle.css'),
