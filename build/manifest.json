@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+
+  "name": "Recode",
+  "description": "Annotate an article and share your opinion",
+  "version": "1.0",
+
+  // "content_scripts": [
+  //   {
+  //     "matches": ["http://www.google.com/*"],
+  //     "css": ["mystyles.css"],
+  //     "js": ["jquery.js", "myscript.js"]
+  //   }
+  // ],
+
+  "background": {
+    "scripts": ["eventPage.js"],
+    "persistent": false
+  },
+
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html",
+    "default_title": "CLick to use Recode!"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ]
+}
