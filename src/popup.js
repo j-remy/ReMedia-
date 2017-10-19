@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 "use strict";
+const annotationsList = require('./annotations_list');
+annotationsList();
 
 /**
  * Get the current URL.
@@ -123,22 +125,20 @@ function getSavedAnnotations(url, callback) {
 function saveAnnotation(url, quoteText, annotationText) {
     chrome.storage.sync.get(url, result => {
         let items = result;
-        let annotationObject = {
+        let annotationObject = {                                //new Object representing annotation metadata to add to annotations
             quoteText: quoteText,
             annotationText: annotationText
         };
-        //console.log(items);
         let annotationsArray = [];
-        //console.log(Object.values(items)[0]);
-        if(Object.values(items)[0]) annotationsArray = annotationsArray.concat(Object.values(items)[0].annotations);
-        annotationsArray.push(annotationObject);
-        items = {["" + url]: {
+        if(Object.values(items)[0])               //include previous annotations if they exist. the 0 property comes from chrome API--> adds an integer key to all properties
+            annotationsArray = annotationsArray.concat(Object.values(items)[0].annotations);
+        annotationsArray.push(annotationObject);                //include the new annotation
+        items = {["" + url]: {                                  //"recreate" the key-value object to store in chrome storage (key is the url)
             annotations: annotationsArray
         }};
 
-        //items.annotations.push(annotationsArray);
         console.log(items);
-        chrome.storage.sync.set(items);
+        chrome.storage.sync.set(items);                         //save onto chrome storage
     });
 }
 
