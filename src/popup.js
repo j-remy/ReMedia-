@@ -108,7 +108,8 @@ function getSavedAnnotations(url, callback) {
     //   callback(chrome.runtime.lastError ? null : items[url]);
     // });
     chrome.storage.sync.get(url, (urlObject) => {
-        callback(chrome.runtime.lastError ? null : urlObject[url].annotations);
+        console.log(urlObject);
+        callback(chrome.runtime.lastError ? null : urlObject.annotations);
     });
 }
 
@@ -126,7 +127,16 @@ function saveAnnotation(url, quoteText, annotationText) {
             quoteText: quoteText,
             annotationText: annotationText
         };
-        items[url].annotations.push(annotationObject);
+        //console.log(items);
+        let annotationsArray = [];
+        //console.log(Object.values(items)[0]);
+        if(Object.values(items)[0]) annotationsArray = annotationsArray.concat(Object.values(items)[0].annotations);
+        annotationsArray.push(annotationObject);
+        items = {["" + url]: {
+            annotations: annotationsArray
+        }};
+
+        //items.annotations.push(annotationsArray);
         console.log(items);
         chrome.storage.sync.set(items);
     });

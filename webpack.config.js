@@ -1,8 +1,8 @@
-const path = require('path')
-const webpack = require('webpack')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const path = require('path');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   // Entry files for our popup and background pages
@@ -78,12 +78,12 @@ module.exports = {
     // // create CSS file with all used styles
     // new ExtractTextPlugin('bundle.css'),
     // // create popup.html from template and inject styles and script bundles
-    // new HtmlWebpackPlugin({
-    //   inject: true,
-    //   chunks: ['popup'],
-    //   filename: 'popup.html',
-    //   template: './src/popup.html'
-    // }),
+    new HtmlWebpackPlugin({
+      inject: true,
+      chunks: ['popup'],
+      filename: 'popup.html',
+      template: './src/popup.html'
+    }),
     // copy extension manifest and icons
     new CopyWebpackPlugin([
       { from: './src/manifest.json' },
