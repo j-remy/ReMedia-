@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 "use strict";
 const annotationsList = require('./annotations_list');
-annotationsList();
 
 /**
  * Get the current URL.
@@ -38,6 +37,7 @@ function getCurrentTabUrl(callback) {
         console.assert(typeof url == 'string', 'tab.url should be a string');
 
         callback(url);
+        annotationsList(url);
     });
 
 }
@@ -123,8 +123,10 @@ function getSavedAnnotations(url, callback) {
  * @param {string} annotationText The annotation to be saved
  */
 function saveAnnotation(url, quoteText, annotationText) {
+    if(!quoteText || !annotationText)   return;                 //don't do anything if annotation invalid
     chrome.storage.sync.get(url, result => {
         let items = result;
+
         let annotationObject = {                                //new Object representing annotation metadata to add to annotations
             quoteText: quoteText,
             annotationText: annotationText
@@ -138,7 +140,9 @@ function saveAnnotation(url, quoteText, annotationText) {
         }};
 
         console.log(items);
-        chrome.storage.sync.set(items);                         //save onto chrome storage
+        chrome.storage.sync.set(items, ()=>{
+            annotationsList(url);
+        });                         //save onto chrome storage
     });
 }
 

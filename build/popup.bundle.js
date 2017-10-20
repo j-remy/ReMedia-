@@ -970,7 +970,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var React = __webpack_require__(6);
 var ReactDOM = __webpack_require__(18);
 
-module.exports = function () {
+module.exports = function (url) {
     var AnnotationsList = function (_React$Component) {
         _inherits(AnnotationsList, _React$Component);
 
@@ -1026,13 +1026,16 @@ module.exports = function () {
                     null,
                     React.createElement(
                         'div',
-                        { className: 'thought', id: 'quoteText' },
-                        'this.props.quote'
+                        { className: 'quotes', id: 'quoteText' },
+                        '"',
+                        this.props.quote,
+                        '"'
                     ),
                     React.createElement(
                         'div',
-                        { id: 'annotationText' },
-                        'this.props.annotation'
+                        { className: 'annotations', id: 'annotationText' },
+                        ' \u2003',
+                        this.props.annotation
                     )
                 );
             }
@@ -21256,7 +21259,6 @@ module.exports = function() {
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var annotationsList = __webpack_require__(15);
-annotationsList();
 
 /**
  * Get the current URL.
@@ -21291,6 +21293,7 @@ function getCurrentTabUrl(callback) {
         console.assert(typeof url == 'string', 'tab.url should be a string');
 
         callback(url);
+        annotationsList(url);
     });
 }
 
@@ -21371,8 +21374,10 @@ function getSavedAnnotations(url, callback) {
  * @param {string} annotationText The annotation to be saved
  */
 function saveAnnotation(url, quoteText, annotationText) {
+    if (!quoteText || !annotationText) return; //don't do anything if annotation invalid
     chrome.storage.sync.get(url, function (result) {
         var items = result;
+
         var annotationObject = { //new Object representing annotation metadata to add to annotations
             quoteText: quoteText,
             annotationText: annotationText
@@ -21386,7 +21391,9 @@ function saveAnnotation(url, quoteText, annotationText) {
         });
 
         console.log(items);
-        chrome.storage.sync.set(items); //save onto chrome storage
+        chrome.storage.sync.set(items, function () {
+            annotationsList(url);
+        }); //save onto chrome storage
     });
 }
 

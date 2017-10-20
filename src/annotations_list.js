@@ -2,7 +2,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 
 
-module.exports = function () {
+module.exports = function (url) {
 
     class AnnotationsList extends React.Component {
 
@@ -40,8 +40,8 @@ module.exports = function () {
         render() {
             return (
                 <div>
-                    <div className="thought" id="quoteText">this.props.quote</div>
-                    <div id="annotationText">this.props.annotation</div>
+                    <div className="quotes" id="quoteText">"{this.props.quote}"</div>
+                    <div className="annotations" id="annotationText"> &emsp;{this.props.annotation}</div>
                 </div>
             );
         }
