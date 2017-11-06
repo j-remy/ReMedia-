@@ -1,0 +1,82 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+<head>
+    <title>Getting Started Extension's Window</title>
+    <style type="text/css">
+        body {
+            margin: 10px;
+            white-space: nowrap;
+        }
+
+        h1 {
+            font-size: 15px;
+        }
+
+        #container {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .thought {
+            position: relative;
+            text-align: center;
+            width: auto;
+            height: 100px;
+            text-align: center;
+            text-overflow: ellipsis;
+            line-height: 100px;
+            background-color: #fff;
+            border: 8px solid #666;
+            -webkit-border-radius: 58px;
+            -moz-border-radius: 58px;
+            border-radius: 58px;
+            -webkit-box-shadow: 2px 2px 4px #888;
+            -moz-box-shadow: 2px 2px 4px #888;
+            box-shadow: 2px 2px 4px #888;
+        }
+
+        .quotes{
+            font-size: 16px;
+            color: #979797;
+            font-style: italic;
+        }
+
+        .annotation{
+            font-size: 8px;
+        }
+
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+    -->
+    <!--<script src="/build/popup.bundle.js"></script>-->
+</head>
+
+<body>
+<h1>Recode</h1>
+<span>Choose an action</span>
+<select id="dropdown">
+    <option selected disabled hidden value=''></option>
+    <option value="annotate">Annotate</option>
+    <option value="insert_image">Insert Image</option>
+    <option value="share">Share</option>
+</select>
+<div class="thought" id="quoteText">some quote</div>
+<div id="annotationText">some annotation</div>
+<br>
+<h1>Your annotations</h1>
+<div id="annotationList"></div>
+<!--<script src="/build/annotations_list.bundle.js"></script>-->
+
+</body>
+</html>

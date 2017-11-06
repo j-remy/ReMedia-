@@ -9,6 +9,7 @@ module.exports = {
   // Entry files for our popup and background pages
   entry: {
     popup: './src/popup.js',
+    prepPage: './src/prepPage.js',
     annotations_list: './src/annotations_list.js'
   },
   // Extension will be built into ./dist folder, which we can then load as unpacked extension in Chrome
