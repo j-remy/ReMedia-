@@ -10,7 +10,8 @@ module.exports = {
   entry: {
     popup: './src/popup.js',
     prepPage: './src/prepPage.js',
-    annotations_list: './src/annotations_list.js'
+    annotations_list: './src/annotations_list.js',
+    contentScript: './src/contentScript.js'
   },
   // Extension will be built into ./dist folder, which we can then load as unpacked extension in Chrome
   output: {
@@ -86,6 +87,12 @@ module.exports = {
       filename: 'popup.html',
       template: './src/popup.html'
     }),
+    // new HtmlWebpackPlugin({
+    //     inject: true,
+    //     chunks: ['prepPage'],
+    //     filename: 'backgroundPage.html',
+    //     template: './src/backgroundPage.html'
+    // }),
     // copy extension manifest and icons
     new CopyWebpackPlugin([
       { from: './src/manifest.json' },

@@ -3,9 +3,9 @@
  * GOOD FOR PAGE INITIALIZATION STUFF
  */
 "use strict";
-const annotationsList = require('./annotations_list');
+let tabId = 0;          //dummy value
 
-function createContextMenus(){
+    function createContextMenus(){
     let annotationText;
     let contextMenuProps = {
         type: 'normal',
@@ -35,10 +35,19 @@ chrome.runtime.onInstalled.addListener(details =>{
     createContextMenus();
 });
 
-chrome.webNavigation.onCompleted.addListener((details) =>{
-    console.log("loaded page woohoo!");
-    registerEvents();           //get events registered
+// chrome.webNavigation.onCompleted.addListener((details) =>{
+//     console.log("loaded page woohoo!");
+//     registerEvents();           //get events registered
+// });
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    //alert(changeInfo.status);
+    if (changeInfo.status === 'complete') {
+        console.log("loaded page woohoo!");
+        registerEvents();
+    }
 });
+
 
 
 function registerEvents() {
@@ -49,6 +58,22 @@ function registerEvents() {
 
     }
     chrome.contextMenus.onClicked.addListener(clickEvent);
+
+    //setup the modal window in content Script
+    console.log("about to register modal content");
+    let tabIdPromise = new Promise((resolve,reject) => {
+        chrome.tabs.query({active: true, currentWindow: true}, tabs => {            //get tab, to refer to tab ID.      WILL BREAK IF NOT KEEPING TAB IN THE SELECTED STATE
+            resolve(tabs[0].id);
+        });
+    });
+    tabIdPromise.then(tabId =>{
+        tabId = tabId;
+        chrome.tabs.sendMessage(tabId, {contentType: "create"}, response => {
+            if (response) {
+                console.log(response);//indication that content script is rendering
+            }
+        });
+    });
 }
 
 
@@ -85,7 +110,7 @@ function getCurrentTabUrl(callback) {
         console.assert(typeof url == 'string', 'tab.url should be a string');
 
         callback(url);
-        annotationsList(url);
+        //annotationsList(url);
     });
 
 }
@@ -107,7 +132,7 @@ function loadQuote() {
         let executeScriptPromise = chrome.tabs.executeScript({
             code: script
         }, function (response) {
-            document.getElementById("quoteText").innerHTML = response[0];
+            //document.getElementById("quoteText").innerHTML = response[0];
             resolve(response[0]);
         });
     });
@@ -137,7 +162,7 @@ function performAnnotate() {
     //  });
 
     let annotation = prompt("enter your annotation");
-    document.getElementById("annotationText").innerHTML = annotation;
+    //document.getElementById("annotationText").innerHTML = annotation;
     return annotation;
 
 }
@@ -159,7 +184,8 @@ function getSavedAnnotations(url, callback) {
     // });
     chrome.storage.sync.get(url, (urlObject) => {
         console.log(urlObject);
-        callback(chrome.runtime.lastError ? null : urlObject.annotations);
+        //console.log(urlObject.annotations);
+        callback(chrome.runtime.lastError ? null : urlObject[url].annotations);
     });
 }
 
@@ -172,10 +198,6 @@ function getSavedAnnotations(url, callback) {
  */
 function saveAnnotation(url, quoteText, annotationText) {
     if(!quoteText || !annotationText)   return;                 //don't do anything if annotation invalid
-    // let url;
-    // getCurrentTabUrl(urlArg=>{
-    //     url = urlArg;
-    // });
     chrome.storage.sync.get(url, result => {
         let items = result;
 
@@ -184,7 +206,7 @@ function saveAnnotation(url, quoteText, annotationText) {
             annotationText: annotationText
         };
         let annotationsArray = [];
-        if(Object.values(items)[0])               //include previous annotations if they exist. the 0 property comes from chrome API--> adds an integer key to all properties
+        if(Object.values(items)[0])               //include previous annotations if they exist. the 0 property comes from chrome API--> adds an integer key to all thing u save
             annotationsArray = annotationsArray.concat(Object.values(items)[0].annotations);
         annotationsArray.push(annotationObject);                //include the new annotation
         items = {["" + url]: {                                  //"recreate" the key-value object to store in chrome storage (key is the url)
@@ -214,13 +236,22 @@ function preSaveAnnotation() {
 
         // Load the saved annotations for this page and modify the dropdown
         // value, if needed.
-        quoteText.then(response =>{
-            getSavedAnnotations(url, (savedAnnotationObjects) => {
+        quoteText.then(theQuote =>{
+            getSavedAnnotations(url, savedAnnotationObjects => {
                 if (savedAnnotationObjects) {
                     console.log(savedAnnotationObjects);
 
-                    //displaying the saved annotations
-                    annotationsList(url);
+                    //displaying the saved annotations, by sending url to content script to render annotationList
+                    //annotationsList(url);
+                    annotationText = performAnnotate();
+                    saveAnnotation(url, theQuote, annotationText);
+
+                    console.log("about to render modal");
+                    chrome.tabs.sendMessage(tabId, {contentType: "url", url: url, quoteText: theQuote, annotationText: annotationText}, response => {
+                        if (response) {
+                            console.log(response);      //indication that content script is rendering
+                        }
+                    });
 
                     //let annotationText = performAnnotate();
                     //quoteText = savedOption;
