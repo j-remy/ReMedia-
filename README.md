@@ -1,4 +1,4 @@
-# ReMedia
+# ReMedia - Extension UI Development Branch
 Chrome Extension for the ReMedia application
 
 
