@@ -41,7 +41,7 @@ module.exports = function (url) {
             return (
                 <div>
                     <div className="quotes" id="quoteText">"{this.props.quote}"</div>
-                    <div className="annotations" id="annotationText"> &emsp;{this.props.annotation}</div>
+                    <div className="annotations" id="annotationText">&emsp;{this.props.annotation}</div>
                 </div>
             );
         }

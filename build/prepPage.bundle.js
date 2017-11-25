@@ -105,24 +105,39 @@ function createContextMenus() {
 }
 
 chrome.runtime.onInstalled.addListener(function (details) {
-    console.log("runnin!");
     createContextMenus();
+    //alert(changeInfo.status);
+    // if (changeInfo.status === 'complete') {
+    registerEvents();
+    // }
 });
 
 // chrome.webNavigation.onCompleted.addListener((details) =>{
-//     console.log("loaded page woohoo!");
 //     registerEvents();           //get events registered
 // });
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    //alert(changeInfo.status);
-    if (changeInfo.status === 'complete') {
-        console.log("loaded page woohoo!");
-        registerEvents();
-    }
-});
 
 function registerEvents() {
+    //this logic needs to run after every page load
+    chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+        //NOTE: I think this runs multiple times. would be nice to only run once
+        //setup the modal window in content Script
+        var tabIdPromise = new Promise(function (resolve, reject) {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                //get tab, to refer to tab ID.      WILL BREAK IF NOT KEEPING TAB IN THE SELECTED STATE
+                resolve(tabs[0].id);
+            });
+        });
+        tabIdPromise.then(function (tabId) {
+            tabId = tabId;
+            chrome.tabs.sendMessage(tabId, { contentType: "create" }, function (response) {
+                if (response) {
+                    console.log(response); //indication that content script is rendering
+                }
+            });
+        });
+    });
+
     function clickEvent() {
         //need response and url in the event registration. must therefore register for each page
         //annotationText = performAnnotate();
@@ -130,23 +145,6 @@ function registerEvents() {
         preSaveAnnotation(); //prepare the work necessary to begin saving annotations
     }
     chrome.contextMenus.onClicked.addListener(clickEvent);
-
-    //setup the modal window in content Script
-    console.log("about to register modal content");
-    var tabIdPromise = new Promise(function (resolve, reject) {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            //get tab, to refer to tab ID.      WILL BREAK IF NOT KEEPING TAB IN THE SELECTED STATE
-            resolve(tabs[0].id);
-        });
-    });
-    tabIdPromise.then(function (tabId) {
-        tabId = tabId;
-        chrome.tabs.sendMessage(tabId, { contentType: "create" }, function (response) {
-            if (response) {
-                console.log(response); //indication that content script is rendering
-            }
-        });
-    });
 }
 
 /**
@@ -155,35 +153,37 @@ function registerEvents() {
  * @param {function(string)} callback called when the URL of the current tab
  *   is found
  */
-function getCurrentTabUrl(callback) {
+function getCurrentTabUrl() {
     // Query filter to be passed to chrome.tabs.query - see
     // https://developer.chrome.com/extensions/tabs#method-query
     var queryInfo = {
         active: true,
         currentWindow: true
     };
-
-    chrome.tabs.query(queryInfo, function (tabs) {
-        // chrome.tabs.query invokes the callback with a list of tabs that match the
-        // query. When the popup is opened, there is certainly a window and at least
-        // one tab, so we can safely assume that |tabs| is a non-empty array.
-        // A window can only have one active tab at a time, so the array consists of
-        // exactly one tab.
-        var tab = tabs[0];
-
-        // A tab is a plain object that provides information about the tab.
-        // See https://developer.chrome.com/extensions/tabs#type-Tab
-        var url = tab.url;
-
-        // tab.url is only available if the "activeTab" permission is declared.
-        // If you want to see the URL of other tabs (e.g. after removing active:true
-        // from |queryInfo|), then the "tabs" permission is required to see their
-        // "url" properties.
-        console.assert(typeof url == 'string', 'tab.url should be a string');
-
-        callback(url);
-        //annotationsList(url);
+    return new Promise(function (resolve, reject) {
+        chrome.tabs.query(queryInfo, function (tabs) {
+            // chrome.tabs.query invokes the callback with a list of tabs that match the
+            // query. When the popup is opened, there is certainly a window and at least
+            // one tab, so we can safely assume that |tabs| is a non-empty array.
+            // A window can only have one active tab at a time, so the array consists of
+            // exactly one tab.
+            var tab = tabs[0];
+            // A tab is a plain object that provides information about the tab.
+            // See https://developer.chrome.com/extensions/tabs#type-Tab
+            var url = tab.url;
+            // tab.url is only available if the "activeTab" permission is declared.
+            // If you want to see the URL of other tabs (e.g. after removing active:true
+            // from |queryInfo|), then the "tabs" permission is required to see their
+            // "url" properties.
+            console.assert(typeof url == 'string', 'tab.url should be a string');
+            resolve(url);
+            //callback();
+            //annotationsList(url);
+        });
     });
+    // return aPromise.then(response =>{
+    //    return response;
+    // });
 }
 
 /**
@@ -242,17 +242,19 @@ function performAnnotate() {
  * @param {function(string)} callback called with the saved annotations for
  *     the given url on success, or a falsy value if no annotations are retrieved.
  */
-function getSavedAnnotations(url, callback) {
+function getSavedAnnotations(url) {
     // See https://developer.chrome.com/apps/storage#type-StorageArea. We check
     // for chrome.runtime.lastError to ensure correctness even when the API call
     // fails.
     // chrome.storage.sync.get(url, (items) => {
     //   callback(chrome.runtime.lastError ? null : items[url]);
     // });
-    chrome.storage.sync.get(url, function (urlObject) {
-        console.log(urlObject);
-        //console.log(urlObject.annotations);
-        callback(chrome.runtime.lastError ? null : urlObject[url].annotations);
+    return new Promise(function (resolve, reject) {
+        console.log(url);
+        chrome.storage.sync.get(url, function (urlObject) {
+            //console.log(urlObject.annotations);
+            resolve(chrome.runtime.lastError ? null : urlObject[url].annotations);
+        });
     });
 }
 
@@ -280,7 +282,7 @@ function saveAnnotation(url, quoteText, annotationText) {
             annotations: annotationsArray
         });
 
-        console.log(items);
+        // console.log(items);
         chrome.storage.sync.set(items, function () {}); //save onto chrome storage
     });
 }
@@ -293,53 +295,48 @@ function saveAnnotation(url, quoteText, annotationText) {
 // user devices.
 
 function preSaveAnnotation() {
-    var quoteText = loadQuote();
+    // let quoteText = loadQuote();
+    // let annotationText;
+    // let annotations = [];
+    // let url = getCurrentTabUrl();
+    var quotePromise = loadQuote();
+    var theQuote = void 0;
     var annotationText = void 0;
     var annotations = [];
-    getCurrentTabUrl(function (url) {
-        var dropdown = document.getElementById('dropdown');
+    var urlPromise = getCurrentTabUrl();
+    var theUrl = void 0;
 
-        // Load the saved annotations for this page and modify the dropdown
-        // value, if needed.
-        quoteText.then(function (theQuote) {
-            getSavedAnnotations(url, function (savedAnnotationObjects) {
-                if (savedAnnotationObjects) {
-                    console.log(savedAnnotationObjects);
-
-                    //displaying the saved annotations, by sending url to content script to render annotationList
-                    //annotationsList(url);
-                    annotationText = performAnnotate();
-                    saveAnnotation(url, theQuote, annotationText);
-
-                    console.log("about to render modal");
-                    chrome.tabs.sendMessage(tabId, { contentType: "url", url: url, quoteText: theQuote, annotationText: annotationText }, function (response) {
-                        if (response) {
-                            console.log(response); //indication that content script is rendering
-                        }
-                    });
-
-                    //let annotationText = performAnnotate();
-                    //quoteText = savedOption;
-                    //   let quoteText = savedAnnotationObject.quoteText;
-                    //   let annotationText = savedAnnotationObject.annotationText;
+    urlPromise.then(function (url) {
+        //get Url of current selected tab
+        theUrl = url;
+    }).then(function () {
+        //get the selected text
+        quotePromise;
+    }).then(function (quoteText) {
+        //save the selected quote and get other quotes
+        theQuote = quoteText;
+        getSavedAnnotations(theUrl);
+    }).then(function (savedAnnotations) {
+        //ask for user input, save it as annotation and display the modal
+        annotationText = performAnnotate();
+        saveAnnotation(theUrl, theQuote, annotationText);
+        console.log("about to render modal");
+        var tabIdPromise = new Promise(function (resolve, reject) {
+            //Promise wrapper needed to force synch. behaviour
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                //get tab, to refer to tab ID.      WILL BREAK IF NOT KEEPING TAB IN THE SELECTED STATE
+                resolve(tabs[0].id);
+            });
+        });
+        tabIdPromise.then(function (tabId) {
+            chrome.tabs.sendMessage(tabId, { contentType: "url", quoteText: theQuote, annotationText: annotationText, url: theUrl }, function (response) {
+                if (response) {
+                    console.log(response); //indication that content script is rendering
                 }
             });
-            //createContextMenus(url, response, annotationText);
-            //only laod the additional options once the quote is loaded
-            // dropdown.addEventListener('change', () => {
-            //     if (dropdown.value === "annotate") {
-            //         annotationText = performAnnotate();
-            //         saveAnnotation(url, response, annotationText);
-            //     }
-            // });
-            //createContextMenus(url, response);
-        }); //load the selected quote if any...
+        });
     });
 }
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     registerEvents();           //get events registered
-// });
 
 /***/ })
 

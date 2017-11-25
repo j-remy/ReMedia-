@@ -43,6 +43,7 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
 
         return true;
     }
+
     else if(request.contentType === "url"){                 //if request contains url, need to display
 
         sendResponse({content: "displaying modal"});

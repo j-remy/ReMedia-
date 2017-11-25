@@ -1034,7 +1034,7 @@ module.exports = function (url) {
                     React.createElement(
                         'div',
                         { className: 'annotations', id: 'annotationText' },
-                        ' \u2003',
+                        '\u2003',
                         this.props.annotation
                     )
                 );
