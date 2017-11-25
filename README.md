@@ -1,5 +1,5 @@
-# ReCode
-Chrome Extension for the Recode application
+# ReMedia
+Chrome Extension for the ReMedia application
 
 
 Version 1.0
