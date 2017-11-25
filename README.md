@@ -1,4 +1,4 @@
-# ReCode
+# ReMedia
 Chrome Extension for the ReMedia application
 
 
